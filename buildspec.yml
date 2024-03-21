@@ -2,24 +2,24 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      nodejs: 14
     commands:
-      - echo Installing Node.js 16...
-      - curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-      - sudo apt-get install -y nodejs
-      - echo Installing Yarn...
-      - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-      - echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-      - sudo apt-get update && sudo apt-get install -y yarn
+      - npm install -g npm@latest
+      - npm install -g yarn
   pre_build:
     commands:
-      - echo Installing project dependencies...
       - yarn install
   build:
     commands:
-      - echo Building React app...
       - yarn build
+  post_build:
+    commands:
+      - aws s3 sync build/ s3://react-counter-demo
+      # Optionally, you can also configure CloudFront invalidation for faster CDN updates
+      # - aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+
 artifacts:
   files:
-    - "**/*"
-  discard-paths: no
-  base-directory: build
+    - '**/*'
+  discard-paths: yes
